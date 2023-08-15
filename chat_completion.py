@@ -1,7 +1,6 @@
 import openai
 import json
 
-
 def get_question_from_topic(topic, history):
 
     message = [{"role": "user", "content": topic}]
@@ -31,4 +30,6 @@ initial_history = [{"role": "system", "content": "You are a quiz generator which
                    {"role": "assistant", "content": '{"question": "Who is the all-time top scorer in the Premier League?", "options": ["Harry Kane", "Wayne Rooney", "Alan Shearer", "Michael Owen"], "answer": "Alan Shearer", "explanation":"Shearer has scored 260 goals whereas Kane, Rooney and Owen have scored 213, 208 and 150 respectively.}'}
                    ]
 
+if __name__ == '__main__':
+    
 #get_question_from_topic("Harry Potter", initial_history)
