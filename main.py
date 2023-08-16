@@ -12,14 +12,12 @@ if 'quiz' not in st.session_state:
     st.session_state.quiz = {"quiz_data": []}
     st.session_state.score = 0
     st.session_state.total = 0
-    st.session_state.correct = None
-    st.session_state.explanation = None
-    st.session_state.disable_choose = False
-    st.session_state.user_quiz = None
-    st.session_state.submit_button = False
     st.session_state.asking_question = False
-    st.session_state.next_question_data = None
+    st.session_state.submit_button = False
+    st.session_state.current_question = None
     st.session_state.chosen_answer = None
+    st.session_state.user_quiz = None
+
 
 # Sidebar
 st.sidebar.write("Generate questions using GPT 3.5:")
@@ -33,6 +31,7 @@ st.sidebar.write("Download Current Quiz:")
 dt = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 st.sidebar.download_button(label="Download", data=json.dumps(st.session_state.quiz), file_name=f"quiz_{dt}.json")
 
+
 # Main screen
 def display_question(contents):
     # contents: dictionary
@@ -43,30 +42,26 @@ def display_question(contents):
     st.radio(
         contents['question'],
         contents['options'], key='chosen_answer',
-        label_visibility="collapsed",
-        disabled=st.session_state.disable_choose)
-
-    st.session_state.correct = contents['answer']
-    st.session_state.explanation = contents['explanation']
+        label_visibility="collapsed")
 
     st.write(f"You have chosen {st.session_state.chosen_answer}")
-    st.button("Submit", disabled=st.session_state.disable_choose, on_click=update_submit)
+    # TODO: display question after submit pressed and disable submit button and options using disabled = st.session_state.disable_choose)
+    st.button("Submit", on_click=update_submit)
 
 def update_submit():
     st.session_state.submit_button = True
-    st.session_state.disable_choose = True
     st.session_state.asking_question = False
 
 def check_answer():
     print('checking answer')
-    if st.session_state.chosen_answer == st.session_state.correct:
+    if st.session_state.chosen_answer == st.session_state.current_question['answer']:
         st.markdown(":green[Correct!]")
         st.session_state.score += 1
     else:
-        st.markdown(f":red[Incorrect.] Correct answer was {st.session_state.next_question_data['answer']}")
+        st.markdown(f":red[Incorrect.] Correct answer was {st.session_state.current_question['answer']}")
 
     st.session_state.total += 1
-    st.write(st.session_state.next_question_data['explanation'])
+    st.write(st.session_state.current_question['explanation'])
     display_score()
 
 
@@ -84,7 +79,7 @@ def get_next_question():
     if uploaded_file is not None:
         st.session_state.user_quiz = read_file(uploaded_file)
         if st.session_state.user_quiz is None:
-            st.write("Error: Uploaded file is not in the correct format ( {'quiz':[]} ).")
+            st.write("Uploaded file is not in the correct format ( must be .json file containing {'quiz_data':[]} ).")
         else:
             next_question_data = st.session_state.user_quiz[st.session_state.total % len(st.session_state.user_quiz)]
 
@@ -97,19 +92,26 @@ def get_next_question():
 
     if next_question_data is not None:
         st.session_state.asking_question = True
-        st.session_state.next_question_data = next_question_data
+        st.session_state.current_question = next_question_data
 
 def read_file(file):
-    return {}
+    try:
+        data = json.load(file)
 
+        if isinstance(data, dict):
+            if 'quiz_data' in data:
+                return data['quiz_data']
+            else:
+                st.write("Error: There isn't a quiz_data key in the json document")
 
-print("asking question:", st.session_state.asking_question)
-print("submit button:", st.session_state.asking_question)
+            return None
+    except:
+        return None
+
 
 if st.session_state.asking_question:
     st.session_state.submit_button = False
-    st.session_state.disable_choose = False
-    display_question(st.session_state.next_question_data)
+    display_question(st.session_state.current_question)
 
 if st.session_state.submit_button:
     check_answer()
