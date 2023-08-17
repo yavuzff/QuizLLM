@@ -1,7 +1,8 @@
 import streamlit as st
-from chat_completion import test
+from chat_completion import get_question_from_topic
 import json
 from datetime import datetime
+import openai
 
 st.markdown("# Quiz 🎈")
 st.sidebar.markdown("# Quiz 🎈")
@@ -22,7 +23,7 @@ if 'quiz' not in st.session_state:
 # Sidebar
 st.sidebar.write("Generate questions using GPT 3.5:")
 topic = st.sidebar.text_input("Enter topic:", key="topic")
-api_key = st.sidebar.text_input("Enter OpenAI API Key:", key="user_key")
+api_key = st.sidebar.text_input("Enter OpenAI API Key:", key="user_key", type = "password")
 
 st.sidebar.write("Or upload your own questions:")
 uploaded_file = st.sidebar.file_uploader('Upload', label_visibility="collapsed" )
@@ -48,9 +49,11 @@ def display_question(contents):
     # TODO: display question after submit pressed and disable submit button and options using disabled = st.session_state.disable_choose)
     st.button("Submit", on_click=update_submit)
 
+
 def update_submit():
     st.session_state.submit_button = True
     st.session_state.asking_question = False
+
 
 def check_answer():
     print('checking answer')
@@ -69,8 +72,6 @@ def display_score():
     st.write(f"Correct answers: {st.session_state.score}")
     st.write(f"Percentage: {round(st.session_state.score/st.session_state.total, 2)}")
 
-def is_valid_api_key(key):
-    return key == 'secret'
 
 def get_next_question():
     print('clicked next question')
@@ -85,10 +86,11 @@ def get_next_question():
 
     elif topic == '':
         st.write("Please enter a topic.")
-    elif not is_valid_api_key(api_key):
-        st.write("Please enter a valid OpenAI API key.")
     else:
-        next_question_data = test(topic)
+        try:
+            next_question_data = get_question_from_topic(topic, api_key)
+        except openai.error.AuthenticationError:
+            st.write("Please enter a valid OpenAI API key.")
 
     if next_question_data is not None:
         st.session_state.asking_question = True
