@@ -1,7 +1,7 @@
 import openai
 import json
 
-history = [{"role": "system", "content": "You are a quiz generator which when given a topic, returns a question with 4 options, 1 correct answer and an explanation in JSON format. Do not ask the same/similar questions to what has already been asked."},
+history = [{"role": "system", "content": "You are a quiz generator which when given a topic, returns a question with 4 options, 1 correct answer and an explanation in JSON format. Do not ask the same/similar questions to what has already been asked. Do not use options returned in previous questions and make the questions gradually harder."},
                    {"role": "user", "content": "Premier League"},
                    {"role": "assistant", "content": '{"question": "Who is the all-time top scorer in the Premier League?", "options": ["Harry Kane", "Wayne Rooney", "Alan Shearer", "Michael Owen"], "answer": "Alan Shearer", "explanation":"Shearer has scored 260 goals whereas Kane, Rooney and Owen have scored 213, 208 and 150 respectively.}'}
                    ]
@@ -13,7 +13,7 @@ def get_question_from_topic(topic, api_key=None):
     message = [{"role": "user", "content": topic}]
     history = history + message
     response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=history)
-    print(response)
+    print("API response:\n", response)
 
     quiz_response = response.choices[0].message.content
     # sample quiz response value:

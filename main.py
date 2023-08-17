@@ -3,9 +3,10 @@ from chat_completion import get_question_from_topic
 import json
 from datetime import datetime
 import openai
+import random
 
-st.markdown("# Quiz 🎈")
-st.sidebar.markdown("# Quiz 🎈")
+st.markdown("# QuizLLM 🎈")
+st.sidebar.markdown("# QuizLLM 🎈")
 
 
 # Initialization
@@ -37,7 +38,6 @@ st.sidebar.download_button(label="Download", data=json.dumps(st.session_state.qu
 def display_question(contents):
     # contents: dictionary
     # {"question": "", "options": [ , , , ], "answer": "", "explanation": '"}
-    st.session_state.quiz["quiz_data"].append(contents)
     st.session_state.asking_question = True
     st.write(contents['question'])
     st.radio(
@@ -56,7 +56,7 @@ def update_submit():
 
 
 def check_answer():
-    print('checking answer')
+    st.session_state.quiz["quiz_data"].append(st.session_state.current_question)
     if st.session_state.chosen_answer == st.session_state.current_question['answer']:
         st.markdown(":green[Correct!]")
         st.session_state.score += 1
@@ -74,7 +74,6 @@ def display_score():
 
 
 def get_next_question():
-    print('clicked next question')
     next_question_data = None
 
     if uploaded_file is not None:
@@ -94,6 +93,7 @@ def get_next_question():
 
     if next_question_data is not None:
         st.session_state.asking_question = True
+        random.shuffle(next_question_data['options'])
         st.session_state.current_question = next_question_data
 
 def read_file(file):
