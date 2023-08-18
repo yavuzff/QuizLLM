@@ -1,9 +1,10 @@
 import streamlit as st
-from chat_completion import get_question_from_topic
+import openai
 import json
 from datetime import datetime
-import openai
 import random
+from chat_completion import get_question_from_topic
+from aws_connection import upload_to_s3
 
 st.markdown("# QuizLLM 🎈")
 st.sidebar.markdown("# QuizLLM 🎈")
@@ -23,16 +24,27 @@ if 'quiz' not in st.session_state:
 
 # Sidebar
 st.sidebar.write("Generate questions using GPT 3.5:")
-topic = st.sidebar.text_input("Enter topic:", key="topic")
-api_key = st.sidebar.text_input("Enter OpenAI API Key:", key="user_key", type = "password")
+topic = st.sidebar.text_input("Enter topic:")
+api_key = st.sidebar.text_input("Enter OpenAI API Key:", type="password")
 
 st.sidebar.write("Or upload your own questions:")
 uploaded_file = st.sidebar.file_uploader('Upload', label_visibility="collapsed" )
 
-st.sidebar.write("Download Current Quiz:")
+st.sidebar.write("Save Current Quiz:")
 dt = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
-st.sidebar.download_button(label="Download", data=json.dumps(st.session_state.quiz), file_name=f"quiz_{dt}.json")
+saved_quiz_name = f"quiz_{dt}.json"
+st.sidebar.download_button(label="Download", data=json.dumps(st.session_state.quiz), file_name=saved_quiz_name)
 
+with st.sidebar.expander("Upload to AWS S3"):
+    aws_api_key = st.text_input("Enter AWS API key:", type="password")
+    aws_secret_key = st.text_input("Enter AWS Secret key:", type="password")
+    bucket_name = st.text_input("Enter Bucket Name:")
+    if st.button("Save"):
+        if aws_api_key == 'local' and aws_secret_key == 'local':
+            upload_to_s3(bucket_name, json.dumps(st.session_state.quiz), saved_quiz_name)
+        else:
+            upload_to_s3(bucket_name, json.dumps(st.session_state.quiz), saved_quiz_name, aws_api_key, aws_secret_key)
+        st.write("Saved to S3!")
 
 # Main screen
 def display_question(contents):
@@ -85,6 +97,8 @@ def get_next_question():
 
     elif topic == '':
         st.write("Please enter a topic.")
+    elif api_key == 'local':
+        next_question_data = get_question_from_topic(topic)
     else:
         try:
             next_question_data = get_question_from_topic(topic, api_key)
