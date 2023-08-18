@@ -36,7 +36,7 @@ saved_quiz_name = f"quiz_{dt}.json"
 st.sidebar.download_button(label="Download", data=json.dumps(st.session_state.quiz), file_name=saved_quiz_name)
 
 with st.sidebar.expander("Upload to AWS S3"):
-    aws_api_key = st.text_input("Enter AWS API key:", type="password")
+    aws_api_key = st.text_input("Enter AWS Access key:", type="password")
     aws_secret_key = st.text_input("Enter AWS Secret key:", type="password")
     bucket_name = st.text_input("Enter Bucket Name:")
     if st.button("Save"):
