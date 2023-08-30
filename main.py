@@ -58,7 +58,7 @@ def display_question(contents):
         contents['options'], key='chosen_answer',
         label_visibility="collapsed")
 
-    st.write(f"You have chosen {st.session_state.chosen_answer}")
+    #  st.write(f"You have chosen {st.session_state.chosen_answer}")
     # TODO: display question after submit pressed and disable submit button and options using disabled = st.session_state.disable_choose)
     st.button("Submit", on_click=update_submit)
 
@@ -83,7 +83,7 @@ def check_answer():
 
 def display_score():
     st.write(f"Correct answers: {st.session_state.score}")
-    st.write(f"Percentage: {round(st.session_state.score/st.session_state.total, 2)}")
+    st.write(f"Score: {round(st.session_state.score/st.session_state.total, 3)*100}%")
 
 
 def get_next_question():
