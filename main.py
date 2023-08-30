@@ -3,6 +3,7 @@ import openai
 import json
 from datetime import datetime
 import random
+import os
 from chat_completion import get_question_from_topic
 from aws_connection import upload_to_s3
 
@@ -23,7 +24,7 @@ if 'quiz' not in st.session_state:
 
 
 # Sidebar
-st.sidebar.write("Generate questions using GPT 3.5:")
+st.sidebar.write("Generate questions!")
 topic = st.sidebar.text_input("Enter topic:")
 api_key = st.sidebar.text_input("Enter OpenAI API Key:", type="password")
 
@@ -97,7 +98,7 @@ def get_next_question():
 
     elif topic == '':
         st.write("Please enter a topic.")
-    elif api_key == 'local':
+    elif (api_key == 'local' and "QUIZ-LLM-PASSWORD" not in os.environ) or ("QUIZ-LLM-PASSWORD" in os.environ and api_key == os.environ.get("QUIZ-LLM-PASSWORD")):
         next_question_data = get_question_from_topic(topic)
     else:
         try:
